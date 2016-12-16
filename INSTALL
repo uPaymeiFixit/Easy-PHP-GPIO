@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Install Apache and PHP
+sudo apt-get install apache2 php5;
+
+# Allow PHP to execute sudo in the GPIO web folder
+# sudo echo "www-data ALL=NOPASSWD:/var/www/html/gpio/" >> /etc/sudoers;
+# Apparently this needs to be done manually. Add the following line via `sudo visudo`
+# www-data ALL=NOPASSWD:/var/www/html/gpio/
+
+# Create web folder and change permissions
+sudo mkdir /var/www/html/gpio
+sudo chmod 777 /var/www/html/gpio
+
+# Create PHP files
+sudo echo '<?php exec("sudo ./toggle18.sh");?>' > /var/www/html/gpio/toggle18.php
+sudo echo '<?php exec("sudo ./toggle23.sh");?>' > /var/www/html/gpio/toggle23.php
+sudo echo '<?php exec("sudo ./toggle24.sh");?>' > /var/www/html/gpio/toggle24.php
+sudo echo '<?php exec("sudo ./toggle25.sh");?>' > /var/www/html/gpio/toggle25.php
+sudo echo '<?php exec("sudo ./toggle18.sh;sudo ./toggle23.sh;sudo ./toggle24.sh;sudo ./toggle25.sh;");?>' > /var/www/html/gpio/toggleAll.php
+
+# Create shell files
+sudo echo '
+#!/bin/bash
+if [ ! -f /sys/class/gpio/gpio18/direction ];then echo "SETUP";echo "18" > /sys/class/gpio/export;sleep 0.2;echo "out" > /sys/class/gpio/gpio18/direction;fi;if sudo grep -q "0" "/sys/class/gpio/gpio18/value"; then echo "1" > /sys/class/gpio/gpio18/value;else echo "0" > /sys/class/gpio/gpio18/value;fi;
+' > /var/www/html/gpio/toggle18.sh
+sudo echo '
+#!/bin/bash
+if [ ! -f /sys/class/gpio/gpio23/direction ];then echo "SETUP";echo "23" > /sys/class/gpio/export;sleep 0.2;echo "out" > /sys/class/gpio/gpio23/direction;fi;if sudo grep -q "0" "/sys/class/gpio/gpio23/value"; then echo "1" > /sys/class/gpio/gpio23/value;else echo "0" > /sys/class/gpio/gpio23/value;fi;
+' > /var/www/html/gpio/toggle23.sh
+sudo echo '
+#!/bin/bash
+if [ ! -f /sys/class/gpio/gpio24/direction ];then echo "SETUP";echo "24" > /sys/class/gpio/export;sleep 0.2;echo "out" > /sys/class/gpio/gpio24/direction;fi;if sudo grep -q "0" "/sys/class/gpio/gpio24/value"; then echo "1" > /sys/class/gpio/gpio24/value;else echo "0" > /sys/class/gpio/gpio24/value;fi;
+' > /var/www/html/gpio/toggle24.sh
+sudo echo '
+#!/bin/bash
+if [ ! -f /sys/class/gpio/gpio25/direction ];then echo "SETUP";echo "25" > /sys/class/gpio/export;sleep 0.2;echo "out" > /sys/class/gpio/gpio25/direction;fi;if sudo grep -q "0" "/sys/class/gpio/gpio25/value"; then echo "1" > /sys/class/gpio/gpio25/value;else echo "0" > /sys/class/gpio/gpio25/value;fi;
+' > /var/www/html/gpio/toggle25.sh
+
+# Install files
+# sudo mv * /var/www/html/gpio/ # old way
+
+# Make shell files executable
+sudo chmod +x /var/www/html/gpio/*.sh;
